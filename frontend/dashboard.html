@@ -1,0 +1,31 @@
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Bem-vindo!</h1>
+    <div id="user-info"></div>
+    <button onclick="logout()">Sair</button>
+    
+    <script>
+        const usuario = JSON.parse(localStorage.getItem('usuario'));
+        if (!usuario) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('user-info').innerHTML = `
+                <p>Nome: ${usuario.nome}</p>
+                <p>Email: ${usuario.email}</p>
+                <p>Estado Civil: ${usuario.estadoCivil}</p>
+                <p>Mora na Lua: ${usuario.moraLua ? 'Sim 🌙' : 'Não 🌎'}</p>
+            `;
+        }
+        
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

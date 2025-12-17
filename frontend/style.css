@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+body{
+    font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-weight: 300;  /* Corrigido: era font-size: 300; */
+    text-align: center;
+}
+
+.configHeader{
+    font-size: 1.5rem;  /* Corrigido: era larger */
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+.configLebel{
+    border: 0.01rem solid black;  /* CORRIGIDO: adicionado estilo e espessura */
+    border-radius: 1rem;  /* Adicionei border-right: 1rem; provavelmente era para ser border-radius */
+    padding: 1.5rem;
+    display: inline-block;
+    margin-top: 1rem;
+    width: 16rem;
+}
+
+.configSize{
+    font-size: 1.8rem;  /* Corrigido: era 600 */
+    font-weight: 600;   /* Corrigido: era 300 */
+}
+
+.configLabel{
+    margin-top: 5rem;
+}
+
+/*SELECT*/
+#configSelect{
+    width: 8rem;
+    color: black;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#configYesNo{
+    width: 5rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1.5rem;
+}
+
+button{
+    height: 2rem;
+    width: 10rem;
+    font-size: 1rem;
+    border: 0.1rem solid black;
+    border-radius: 0.3rem;
+    color: black;
+    font-weight: bold;
+    background-color: white;
+    cursor: pointer;
+}
+
+.renderButton{
+    margin-top: 1.5rem;
+}
+
+/* Estilização adicional para inputs */
+.configLebelFull input {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    width: 200px;
+}
+
+.configLebelFull p {
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.align {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+header {
+    background-color: #f0f0f0;
+    padding: 1rem;
+    margin-top: 2rem;
+}
