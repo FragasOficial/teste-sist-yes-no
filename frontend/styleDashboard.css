@@ -1,0 +1,270 @@
+/* stylesheet.css */
+/* Reset e configurações base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #333;
+}
+
+/* Container principal */
+.container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Card do dashboard */
+.dashboard-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
+}
+
+/* Cabeçalho */
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
+    border-radius: 2px;
+}
+
+/* Informações do usuário */
+#user-info {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 30px;
+    margin: 30px 0;
+    border-left: 5px solid #6a11cb;
+    transition: transform 0.3s ease;
+}
+
+#user-info:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(106, 17, 203, 0.1);
+}
+
+#user-info p {
+    margin: 15px 0;
+    font-size: 1.2rem;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#user-info p:nth-child(odd) {
+    background: #f1f3fe;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 150px;
+}
+
+.info-value {
+    color: #6a11cb;
+    font-weight: 500;
+    text-align: right;
+    flex-grow: 1;
+}
+
+/* Ícones para os campos */
+#user-info p:nth-child(1)::before {
+    content: '👤 ';
+    margin-right: 10px;
+}
+
+#user-info p:nth-child(2)::before {
+    content: '📧 ';
+    margin-right: 10px;
+}
+
+#user-info p:nth-child(3)::before {
+    content: '💍 ';
+    margin-right: 10px;
+}
+
+#user-info p:nth-child(4)::before {
+    content: '🚀 ';
+    margin-right: 10px;
+}
+
+/* Botão de logout */
+.logout-section {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #eee;
+}
+
+button {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 25px rgba(255, 65, 108, 0.3);
+}
+
+button::before {
+    content: '🚪';
+    font-size: 1.2rem;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(255, 65, 108, 0.4);
+    background: linear-gradient(135deg, #ff4b2b, #ff416c);
+}
+
+button:active {
+    transform: translateY(-1px);
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 65, 108, 0.3);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .dashboard-card {
+        padding: 25px;
+        margin: 10px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    #user-info {
+        padding: 20px;
+    }
+    
+    #user-info p {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .info-label, .info-value {
+        text-align: left;
+        width: 100%;
+    }
+    
+    button {
+        width: 100%;
+        padding: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .dashboard-card {
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    #user-info p {
+        font-size: 1rem;
+        padding: 12px;
+    }
+}
+
+/* Animação de entrada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+#user-info p {
+    animation: fadeIn 0.8s ease-out backwards;
+}
+
+#user-info p:nth-child(1) { animation-delay: 0.1s; }
+#user-info p:nth-child(2) { animation-delay: 0.2s; }
+#user-info p:nth-child(3) { animation-delay: 0.3s; }
+#user-info p:nth-child(4) { animation-delay: 0.4s; }
+
+/* Estilo especial para "Mora na Lua" */
+#user-info p:nth-child(4) .info-value {
+    font-weight: 700;
+    font-size: 1.3rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#user-info p:nth-child(4) .info-value::after {
+    margin-left: 10px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}

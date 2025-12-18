@@ -3,11 +3,23 @@
 <html>
 <head>
     <title>Dashboard</title>
+    <link rel="stylesheet" href="styleDashboard.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <h1>Bem-vindo!</h1>
-    <div id="user-info"></div>
-    <button onclick="logout()">Sair</button>
+    <div class="container">
+        <div class="dashboard-card">
+            <h1>Bem-vindo ao seu Dashboard! 👋</h1>
+            
+            <div id="user-info">
+                <!-- As informações serão inseridas aqui via JavaScript -->
+            </div>
+            
+            <div class="logout-section">
+                <button onclick="logout()">Sair da Conta</button>
+            </div>
+        </div>
+    </div>
     
     <script>
         const usuario = JSON.parse(localStorage.getItem('usuario'));
@@ -15,10 +27,10 @@
             window.location.href = 'index.html';
         } else {
             document.getElementById('user-info').innerHTML = `
-                <p>Nome: ${usuario.nome}</p>
-                <p>Email: ${usuario.email}</p>
-                <p>Estado Civil: ${usuario.estadoCivil}</p>
-                <p>Mora na Lua: ${usuario.moraLua ? 'Sim 🌙' : 'Não 🌎'}</p>
+                <p><span class="info-label">Nome:</span> <span class="info-value">${usuario.nome}</span></p>
+                <p><span class="info-label">Email:</span> <span class="info-value">${usuario.email}</span></p>
+                <p><span class="info-label">Estado Civil:</span> <span class="info-value">${usuario.estadoCivil}</span></p>
+                <p><span class="info-label">Mora na Lua:</span> <span class="info-value">${usuario.moraLua ? 'Sim 🌙' : 'Não 🌎'}</span></p>
             `;
         }
         

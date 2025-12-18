@@ -7,6 +7,12 @@ function isLocalFile() {
     return window.location.protocol === 'file:';
 }
 
+// Função para validar email
+function validarEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
 // Aguardar DOM carregar
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 DOM completamente carregado');
@@ -55,12 +61,6 @@ function inicializarAplicacao() {
         return;
     }
     
-    // No cadastro, antes de enviar
-    function validarEmail(email) {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    }
-
     // Formulário de CADASTRO (primeiro)
     const cadastroForm = forms[0];
     // Formulário de LOGIN (segundo)
@@ -76,6 +76,7 @@ function inicializarAplicacao() {
     const cadastroNome = cadastroForm.querySelector('input[type="text"]');
     const cadastroEmail = cadastroForm.querySelector('input[type="email"]');
     const cadastroSenha = cadastroForm.querySelector('input[type="password"]');
+    const confirmarSenha = cadastroForm.querySelector('#confirmarSenha'); // Elemento existente no HTML
     const cadastroEstadoCivil = cadastroForm.querySelector('#configSelect');
     const cadastroMoraLua = cadastroForm.querySelector('#configYesNo');
     const cadastroButton = cadastroForm.querySelector('button:not(.renderButton)') || cadastroForm.querySelector('button');
@@ -90,6 +91,7 @@ function inicializarAplicacao() {
             nome: !!cadastroNome,
             email: !!cadastroEmail,
             senha: !!cadastroSenha,
+            confirmarSenha: !!confirmarSenha,
             estadoCivil: !!cadastroEstadoCivil,
             moraLua: !!cadastroMoraLua,
             botao: !!cadastroButton
@@ -109,7 +111,7 @@ function inicializarAplicacao() {
         cadastroButton.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('🖱️ Botão CADASTRAR clicado');
-            executarCadastro(cadastroNome, cadastroEmail, cadastroSenha, cadastroEstadoCivil, cadastroMoraLua);
+            executarCadastro(cadastroNome, cadastroEmail, cadastroSenha, confirmarSenha, cadastroEstadoCivil, cadastroMoraLua);
         });
     }
     
@@ -136,6 +138,10 @@ async function testarConexaoBackend() {
             console.log('✅ BACKEND CONECTADO:', data.mensagem);
             mostrarStatusBackend(true);
             return true;
+        } else {
+            console.error('❌ BACKEND RESPONDEU COM ERRO:', response.status);
+            mostrarStatusBackend(false);
+            return false;
         }
     } catch (error) {
         console.error('❌ BACKEND NÃO CONECTADO:', error.message);
@@ -180,7 +186,7 @@ function mostrarStatusBackend(conectado) {
 }
 
 // CADASTRO
-async function executarCadastro(nomeInput, emailInput, senhaInput, estadoCivilSelect, moraLuaSelect) {
+async function executarCadastro(nomeInput, emailInput, senhaInput, confirmarSenhaInput, estadoCivilSelect, moraLuaSelect) {
     console.log('📝 Iniciando processo de cadastro...');
     
     // Validação
@@ -194,6 +200,12 @@ async function executarCadastro(nomeInput, emailInput, senhaInput, estadoCivilSe
         return;
     }
     
+    // VALIDAÇÃO DE EMAIL
+    if (!validarEmail(emailInput.value.trim())) {
+        alert('Por favor, digite um email válido');
+        return;
+    }
+    
     if (!senhaInput || !senhaInput.value) {
         alert('Por favor, digite uma senha');
         return;
@@ -201,6 +213,17 @@ async function executarCadastro(nomeInput, emailInput, senhaInput, estadoCivilSe
     
     if (senhaInput.value.length < 6) {
         alert('A senha deve ter pelo menos 6 caracteres');
+        return;
+    }
+    
+    // CONFIRMAÇÃO DE SENHA
+    if (!confirmarSenhaInput || !confirmarSenhaInput.value) {
+        alert('Por favor, confirme sua senha');
+        return;
+    }
+    
+    if (senhaInput.value !== confirmarSenhaInput.value) {
+        alert('As senhas não coincidem!');
         return;
     }
     
@@ -213,7 +236,7 @@ async function executarCadastro(nomeInput, emailInput, senhaInput, estadoCivilSe
         moraLua: moraLuaSelect ? (moraLuaSelect.value === 'Sim') : false
     };
     
-    console.log('📤 Dados para cadastro:', usuarioData);
+    console.log('📤 Dados para cadastro:', { ...usuarioData, senha: '***' });
     
     try {
         const response = await fetch(`${API_URL}/api/cadastrar`, {
@@ -234,6 +257,7 @@ async function executarCadastro(nomeInput, emailInput, senhaInput, estadoCivilSe
             nomeInput.value = '';
             emailInput.value = '';
             senhaInput.value = '';
+            confirmarSenhaInput.value = '';
             if (estadoCivilSelect) estadoCivilSelect.value = 'Solteiro';
             if (moraLuaSelect) moraLuaSelect.value = 'Não';
             
@@ -287,6 +311,11 @@ async function executarLogin(emailInput, senhaInput) {
             localStorage.setItem('usuario', JSON.stringify(data.usuario));
             console.log('💾 Dados salvos no localStorage');
             
+            // Redirecionar para dashboard
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+            
         } else {
             alert(`❌ ERRO NO LOGIN:\n${data.mensagem || 'Credenciais inválidas'}`);
         }
@@ -320,7 +349,10 @@ function adicionarBotoesDebug() {
         border-radius: 5px;
         cursor: pointer;
         font-size: 12px;
+        transition: background 0.3s;
     `;
+    btnTestar.onmouseenter = () => btnTestar.style.background = '#0056b3';
+    btnTestar.onmouseleave = () => btnTestar.style.background = '#007bff';
     btnTestar.onclick = testarConexaoBackend;
     
     // Botão Ver Dados
@@ -334,12 +366,17 @@ function adicionarBotoesDebug() {
         border-radius: 5px;
         cursor: pointer;
         font-size: 12px;
+        transition: background 0.3s;
     `;
+    btnDados.onmouseenter = () => btnDados.style.background = '#1e7e34';
+    btnDados.onmouseleave = () => btnDados.style.background = '#28a745';
     btnDados.onclick = function() {
+        const usuario = localStorage.getItem('usuario');
+        const token = localStorage.getItem('token');
         console.log('📦 Dados no localStorage:');
-        console.log('Token:', localStorage.getItem('token'));
-        console.log('Usuário:', localStorage.getItem('usuario'));
-        alert('Dados no console (F12)');
+        console.log('Token:', token ? token.substring(0, 20) + '...' : 'Não existe');
+        console.log('Usuário:', usuario ? JSON.parse(usuario) : 'Não existe');
+        alert('📊 Dados no console (F12)');
     };
     
     // Botão Limpar
@@ -353,25 +390,53 @@ function adicionarBotoesDebug() {
         border-radius: 5px;
         cursor: pointer;
         font-size: 12px;
+        transition: background 0.3s;
     `;
+    btnLimpar.onmouseenter = () => btnLimpar.style.background = '#bd2130';
+    btnLimpar.onmouseleave = () => btnLimpar.style.background = '#dc3545';
     btnLimpar.onclick = function() {
-        localStorage.clear();
-        alert('Dados limpos!');
+        if (confirm('Tem certeza que deseja limpar todos os dados?')) {
+            localStorage.clear();
+            alert('🗑️ Dados limpos!');
+        }
+    };
+    
+    // Botão Dashboard
+    const btnDashboard = document.createElement('button');
+    btnDashboard.textContent = '📱 Ir para Dashboard';
+    btnDashboard.style.cssText = `
+        padding: 10px 15px;
+        background: #6f42c1;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.3s;
+    `;
+    btnDashboard.onmouseenter = () => btnDashboard.style.background = '#59359a';
+    btnDashboard.onmouseleave = () => btnDashboard.style.background = '#6f42c1';
+    btnDashboard.onclick = function() {
+        const usuario = localStorage.getItem('usuario');
+        if (usuario) {
+            window.location.href = 'dashboard.html';
+        } else {
+            alert('⚠️ Você precisa fazer login primeiro!');
+        }
     };
     
     container.appendChild(btnTestar);
     container.appendChild(btnDados);
     container.appendChild(btnLimpar);
+    container.appendChild(btnDashboard);
     document.body.appendChild(container);
 }
 
 // Função auxiliar para mostrar logs bonitos
-console.log = (function() {
-    const original = console.log;
-    return function() {
-        const args = Array.from(arguments);
-        const timestamp = new Date().toLocaleTimeString();
-        args.unshift(`[${timestamp}]`);
-        original.apply(console, args);
-    };
-})();
+const originalLog = console.log;
+console.log = function() {
+    const args = Array.from(arguments);
+    const timestamp = new Date().toLocaleTimeString();
+    args.unshift(`[${timestamp}]`);
+    originalLog.apply(console, args);
+};
