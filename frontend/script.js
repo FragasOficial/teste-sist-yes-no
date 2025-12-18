@@ -1,6 +1,6 @@
 // CONFIGURAÇÃO
-const API_URL = 'http://localhost:3000';
-console.log('🔧 API URL configurada:', API_URL);
+const API_URL = 'https://teste-sist-yes-no.onrender.com';
+console.log('🔧 API URL configurada para produção:', API_URL);
 
 // Função para verificar se estamos em file://
 function isLocalFile() {

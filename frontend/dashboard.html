@@ -22,10 +22,24 @@
     </div>
     
     <script>
+        // MODO DETECTION: Local vs Produção
+        const isLocal = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
+        
+        const API_URL = isLocal 
+            ? 'http://localhost:3000'  // Modo desenvolvimento
+            : 'https://teste-sist-yes-no.onrender.com';  // Modo produção
+        
+        console.log('🌐 Modo:', isLocal ? 'Desenvolvimento' : 'Produção');
+        console.log('🔗 API URL:', API_URL);
+        
+        // Verificar se usuário está logado
         const usuario = JSON.parse(localStorage.getItem('usuario'));
         if (!usuario) {
+            console.log('❌ Usuário não encontrado, redirecionando...');
             window.location.href = 'index.html';
         } else {
+            console.log('✅ Usuário encontrado:', usuario.email);
             document.getElementById('user-info').innerHTML = `
                 <p><span class="info-label">Nome:</span> <span class="info-value">${usuario.nome}</span></p>
                 <p><span class="info-label">Email:</span> <span class="info-value">${usuario.email}</span></p>
@@ -35,7 +49,9 @@
         }
         
         function logout() {
+            console.log('🚪 Saindo da conta...');
             localStorage.clear();
+            alert('Você saiu da conta com sucesso!');
             window.location.href = 'index.html';
         }
     </script>
