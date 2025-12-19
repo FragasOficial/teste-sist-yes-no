@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Administrativo</title>
+
+  <style>
+    body{font-family:Arial, Helvetica, sans-serif;background:#eef2f6;margin:0}
+    header{background:#1f2937;color:white;padding:18px;text-align:center;font-size:22px;font-weight:600}
+
+    .container{max-width:1050px;margin:auto;padding:20px}
+    .card{background:white;padding:20px;border-radius:14px;box-shadow:0 0 12px rgba(0,0,0,.2);margin-bottom:20px}
+    .title{margin:0 0 10px;font-size:19px;font-weight:600;color:#1f2937}
+
+    /* LOGIN */
+    input,select{padding:10px;border-radius:6px;border:1px solid #ccc;width:100%;margin-top:5px}
+
+    .btn{padding:10px 13px;border:none;border-radius:8px;cursor:pointer;font-weight:600}
+    .success{background:#27ae60;color:white}
+    .danger{background:#e74c3c;color:white}
+    .warning{background:#f39c12;color:white}
+    .table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+    th{background:#374151;color:white}
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:10px
+    }
+
+    .card small{color:#666}
+  </style>
+</head>
+<body>
+
+<header>👑 Painel Administrativo</header>
+
+<div class="container">
+
+  <!-- LOGIN ADMIN -->
+  <div class="card">
+    <p class="title">Acesso ao Painel</p>
+    <small>Faça login com a conta ADMIN (admin@sistema.com)</small>
+
+    <input type="email" id="email" placeholder="Email do administrador">
+    <input type="password" id="senha" placeholder="Senha">
+
+    <button onclick="loginAdmin()" class="btn success" style="margin-top:10px">Entrar no Painel</button>
+  </div>
+
+  <!-- DASHBOARD CARDS -->
+  <div id="dash" style="display:none">
+    <div class="grid">
+
+      <div class="card">
+        <p class="title">Total de Usuários</p>
+        <h1 id="totalUsuarios">0</h1>
+      </div>
+
+      <div class="card">
+        <p class="title">Admins</p>
+        <h1 id="totalAdmins">0</h1>
+      </div>
+
+      <div class="card">
+        <p class="title">Usuários Normais</p>
+        <h1 id="totalUsers">0</h1>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LISTA USUÁRIOS -->
+  <div class="card" id="areaUsuarios" style="display:none">
+    <p class="title">Usuários Cadastrados</p>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Papel</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="listaUsuarios"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const API = "https://teste-sist-yes-no.onrender.com";
+let TOKEN = "";
+
+async function loginAdmin(){
+  const email = document.getElementById("email").value;
+  const senha = document.getElementById("senha").value;
+
+  if(!email || !senha) return alert("Preencha email e senha");
+
+  const res = await fetch(`${API}/api/login`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email,senha})
+  });
+
+  const data = await res.json();
+
+  if(!data.sucesso) return alert("Login inválido");
+
+  TOKEN = data.token;
+
+  if(data.usuario && data.usuario.role !== "admin"){
+    return alert("Somente administradores podem acessar");
+  }
+
+  alert("Bem vindo administrador!");
+  document.getElementById("dash").style.display = "block";
+  document.getElementById("areaUsuarios").style.display = "block";
+
+  carregarUsuarios();
+}
+
+async function carregarUsuarios(){
+  const res = await fetch(`${API}/api/admin/usuarios`,{
+    headers:{"Authorization":`Bearer ${TOKEN}`}
+  });
+
+  const dados = await res.json();
+
+  document.getElementById("totalUsuarios").innerText = dados.length;
+  document.getElementById("totalAdmins").innerText = dados.filter(u=>u.role==="admin").length;
+  document.getElementById("totalUsers").innerText = dados.filter(u=>u.role!=="admin").length;
+
+  const tabela = document.getElementById("listaUsuarios");
+  tabela.innerHTML = "";
+
+  dados.forEach(u=>{
+    tabela.innerHTML += `
+      <tr>
+        <td>${u.nome}</td>
+        <td>${u.email}</td>
+        <td>${u.role || 'user'}</td>
+        <td>
+          <button class='warning btn' onclick="promover('${u._id}')">Tornar Admin</button>
+          <button class='danger btn' onclick="excluir('${u._id}')">Excluir</button>
+        </td>
+      </tr>`
+  })
+}
+
+async function excluir(id){
+  if(!confirm("Tem certeza que deseja excluir?")) return;
+  await fetch(`${API}/api/admin/usuario/${id}`,{
+    method:"DELETE",
+    headers:{"Authorization":`Bearer ${TOKEN}`}
+  });
+  carregarUsuarios();
+}
+
+async function promover(id){
+  await fetch(`${API}/api/admin/promover/${id}`,{
+    method:"PUT",
+    headers:{"Authorization":`Bearer ${TOKEN}`}
+  });
+  carregarUsuarios();
+}
+</script>
+
+</body>
+</html>
