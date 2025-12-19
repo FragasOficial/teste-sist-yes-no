@@ -1,4 +1,4 @@
-// server.js - VERSÃO COM FRONTEND INTEGRADO
+// server.js - VERSÃO FINAL CORRIGIDA
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 // 1. MIDDLEWARES E ARQUIVOS ESTÁTICOS
 // ==================================================
 app.use(cors({
-    origin: '*', // Permite todas origens (produção: especifique)
+    origin: '*',
     credentials: true
 }));
 
@@ -43,29 +43,51 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // ==================================================
-// 3. MODELO DE USUÁRIO
+// 3. FUNÇÃO PARA OBTER MODELO (À PROVA DE REDEFINIÇÃO)
 // ==================================================
-const usuarioSchema = new mongoose.Schema({
-    nome: String,
-    email: String,
-    senha: String,
-    estadoCivil: String,
-    moraLua: Boolean,
-    dataCadastro: Date
-}, { 
-    collection: 'login-dados',
-    autoCreate: false  
-});
-
-const Usuario = mongoose.model('Usuario', usuarioSchema);
+function getUsuarioModel() {
+    try {
+        // 1. Tenta pegar o modelo JÁ EXISTENTE no Mongoose
+        if (mongoose.models.Usuario) {
+            console.log('📋 Usando modelo Usuario já existente');
+            return mongoose.models.Usuario;
+        }
+        
+        // 2. Se não existir, cria o modelo APENAS UMA VEZ
+        const usuarioSchema = new mongoose.Schema({
+            nome: String,
+            email: { type: String, unique: true, sparse: true },
+            senha: String,
+            estadoCivil: String,
+            moraLua: Boolean,
+            dataCadastro: { type: Date, default: Date.now }
+        }, { 
+            collection: 'login-dados',
+            autoCreate: false  
+        });
+        
+        // Cria índice único para email
+        usuarioSchema.index({ email: 1 }, { unique: true, sparse: true });
+        
+        console.log('📋 Modelo Usuario criado com sucesso');
+        return mongoose.model('Usuario', usuarioSchema);
+        
+    } catch (error) {
+        console.error('❌ Erro ao obter modelo Usuario:', error.message);
+        throw error;
+    }
+}
 
 // ==================================================
-// 4. ROTAS API
+// 4. ROTAS API (CORRIGIDAS - USAM getUsuarioModel())
 // ==================================================
 
 // ROTA DE TESTE
 app.get('/api/teste', async (req, res) => {
     try {
+        // Obtém o modelo de forma segura
+        const Usuario = getUsuarioModel();
+        
         const collections = await mongoose.connection.db.listCollections().toArray();
         const collectionNames = collections.map(c => c.name);
         
@@ -94,6 +116,9 @@ app.get('/api/teste', async (req, res) => {
 // ROTA DE LOGIN
 app.post('/api/login', async (req, res) => {
     try {
+        // Obtém o modelo de forma segura
+        const Usuario = getUsuarioModel();
+        
         const { email, senha } = req.body;
         
         if (!email || !senha) {
@@ -147,6 +172,9 @@ app.post('/api/login', async (req, res) => {
 // ROTA DE CADASTRO
 app.post('/api/cadastrar', async (req, res) => {
     try {
+        // Obtém o modelo de forma segura
+        const Usuario = getUsuarioModel();
+        
         const { nome, email, senha, estadoCivil, moraLua } = req.body;
         
         if (!nome || !email || !senha) {
@@ -203,6 +231,9 @@ app.post('/api/cadastrar', async (req, res) => {
 // ROTA CRIAR USUÁRIO TESTE
 app.post('/api/criar-teste', async (req, res) => {
     try {
+        // Obtém o modelo de forma segura
+        const Usuario = getUsuarioModel();
+        
         // Verificar se já existe
         const existe = await Usuario.findOne({ email: 'teste@teste.com' });
         
@@ -258,16 +289,16 @@ app.get('/health', (req, res) => {
 });
 
 // ==================================================
-// 5. ROTA FALLBACK - PARA SPA (Single Page Application)
+// 5. ROTA FALLBACK - PARA SPA
 // ==================================================
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ==================================================
-// 6. INICIAR SERVIDOR
+// 6. INICIAR SERVIDOR (CORRIGIDO PARA RENDER)
 // ==================================================
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`
 ==================================================
 🚀 SERVIDOR INICIADO COM SUCESSO!
