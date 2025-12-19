@@ -1,5 +1,4 @@
-/* stylesheet.css */
-/* Reset e configurações base */
+/* styleDashboard.css */
 * {
     margin: 0;
     padding: 0;
@@ -17,14 +16,12 @@ body {
     color: #333;
 }
 
-/* Container principal */
 .container {
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
 }
 
-/* Card do dashboard */
 .dashboard-card {
     background: white;
     border-radius: 20px;
@@ -44,7 +41,6 @@ body {
     background: linear-gradient(90deg, #6a11cb, #2575fc);
 }
 
-/* Cabeçalho */
 h1 {
     color: #2c3e50;
     text-align: center;
@@ -67,7 +63,6 @@ h1::after {
     border-radius: 2px;
 }
 
-/* Informações do usuário */
 #user-info {
     background: #f8f9fa;
     border-radius: 15px;
@@ -110,7 +105,6 @@ h1::after {
     flex-grow: 1;
 }
 
-/* Ícones para os campos */
 #user-info p:nth-child(1)::before {
     content: '👤 ';
     margin-right: 10px;
@@ -131,7 +125,6 @@ h1::after {
     margin-right: 10px;
 }
 
-/* Botão de logout */
 .logout-section {
     text-align: center;
     margin-top: 40px;
@@ -176,7 +169,6 @@ button:focus {
     box-shadow: 0 0 0 3px rgba(255, 65, 108, 0.3);
 }
 
-/* Responsividade */
 @media (max-width: 768px) {
     .dashboard-card {
         padding: 25px;
@@ -227,7 +219,6 @@ button:focus {
     }
 }
 
-/* Animação de entrada */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -252,16 +243,10 @@ button:focus {
 #user-info p:nth-child(3) { animation-delay: 0.3s; }
 #user-info p:nth-child(4) { animation-delay: 0.4s; }
 
-/* Estilo especial para "Mora na Lua" */
 #user-info p:nth-child(4) .info-value {
     font-weight: 700;
     font-size: 1.3rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#user-info p:nth-child(4) .info-value::after {
-    margin-left: 10px;
-    animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {

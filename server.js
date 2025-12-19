@@ -1,39 +1,35 @@
-// server.js - VERSÃO FINAL DEFINITIVA
+// server.js - VERSÃO COM FRONTEND INTEGRADO
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ==================================================
-// 1. MIDDLEWARES
+// 1. MIDDLEWARES E ARQUIVOS ESTÁTICOS
 // ==================================================
 app.use(cors({
-    origin: [
-        'http://localhost:5500',
-        'http://127.0.0.1:5500',
-        'https://*.netlify.app',
-        'https://*.github.io',
-        'http://localhost:8080',
-        'https://teste-sist-yes-no.onrender.com'
-    ],
+    origin: '*', // Permite todas origens (produção: especifique)
     credentials: true
 }));
 
 app.use(express.json());
 
+// SERVIR ARQUIVOS FRONTEND DA PASTA 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+
 // ==================================================
-// 2. CONEXÃO COM MONGODB (ANTES DE QUALQUER ROTA)
+// 2. CONEXÃO COM MONGODB
 // ==================================================
 const MONGODB_URI = process.env.MONGODB_URI || 
                    'mongodb+srv://sfptc06_db_user:batatinhafrita123@cluster0.rik8o9v.mongodb.net/dados-de-acesso?retryWrites=true&w=majority';
 
 console.log('🔗 String de conexão MongoDB:', MONGODB_URI.replace(/:[^:]*@/, ':****@'));
 
-// Conectar ao MongoDB UMA ÚNICA VEZ
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -44,115 +40,38 @@ mongoose.connect(MONGODB_URI, {
 })
 .catch(err => {
     console.error('❌ ERRO ao conectar ao MongoDB:', err.message);
-    console.log('💡 Dica: Verifique:');
-    console.log('   1. String de conexão está correta?');
-    console.log('   2. Network Access no Atlas tem 0.0.0.0/0?');
-    console.log('   3. Usuário/senha estão corretos?');
 });
 
 // ==================================================
-// 3. DEFINIR MODELO (FORA DAS ROTAS, UMA ÚNICA VEZ)
+// 3. MODELO DE USUÁRIO
 // ==================================================
-let Usuario;
-
-// Função para obter o modelo de forma segura
-function getUsuarioModel() {
-    if (!Usuario) {
-        // Verificar se o modelo já existe no Mongoose
-        if (mongoose.models.Usuario) {
-            Usuario = mongoose.models.Usuario;
-            console.log('📋 Usando modelo Usuario já existente');
-        } else {
-            // Criar schema e modelo UMA VEZ
-            const usuarioSchema = new mongoose.Schema({
-                nome: String,
-                email: String,
-                senha: String,
-                estadoCivil: String,
-                moraLua: Boolean,
-                dataCadastro: Date
-            }, { 
-                collection: 'login-dados',
-                // Evitar criar coleção automaticamente
-                autoCreate: false  
-            });
-            
-            Usuario = mongoose.model('Usuario', usuarioSchema);
-            console.log('📋 Modelo Usuario criado com sucesso');
-        }
-    }
-    return Usuario;
-}
-
-// ==================================================
-// 4. MIDDLEWARE PARA VERIFICAR CONEXÃO
-// ==================================================
-app.use(async (req, res, next) => {
-    // Verificar se MongoDB está conectado
-    if (mongoose.connection.readyState !== 1) {
-        console.log('⚠️ MongoDB desconectado, tentando reconectar...');
-        try {
-            await mongoose.connect(MONGODB_URI, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true
-            });
-            console.log('✅ Reconexão bem-sucedida!');
-        } catch (error) {
-            console.error('❌ Falha na reconexão:', error.message);
-            return res.status(503).json({
-                sucesso: false,
-                mensagem: 'Serviço de banco de dados indisponível'
-            });
-        }
-    }
-    next();
+const usuarioSchema = new mongoose.Schema({
+    nome: String,
+    email: String,
+    senha: String,
+    estadoCivil: String,
+    moraLua: Boolean,
+    dataCadastro: Date
+}, { 
+    collection: 'login-dados',
+    autoCreate: false  
 });
 
+const Usuario = mongoose.model('Usuario', usuarioSchema);
+
 // ==================================================
-// 5. ROTAS SIMPLIFICADAS E SEGURAS
+// 4. ROTAS API
 // ==================================================
 
-// ROTA RAIZ (sem usar modelo)
-app.get('/', (req, res) => {
-    res.json({
-        status: 'online ✅',
-        servico: 'API Sistema de Login',
-        versao: '3.0.0',
-        timestamp: new Date().toISOString(),
-        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        rotas_disponiveis: [
-            'GET  /api/teste',
-            'POST /api/login',
-            'POST /api/cadastrar',
-            'POST /api/criar-teste',
-            'GET  /health'
-        ]
-    });
-});
-
-// HEALTH CHECK (sem usar modelo)
-app.get('/health', (req, res) => {
-    res.json({
-        status: 'healthy',
-        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        uptime: process.uptime(),
-        timestamp: new Date().toISOString()
-    });
-});
-
-// ROTA DE TESTE (USANDO O MODELO CORRETAMENTE)
+// ROTA DE TESTE
 app.get('/api/teste', async (req, res) => {
     try {
-        // Obter modelo de forma segura
-        const UsuarioModel = getUsuarioModel();
-        
-        // Verificar se coleção existe
         const collections = await mongoose.connection.db.listCollections().toArray();
         const collectionNames = collections.map(c => c.name);
         
         let usuarioCount = 0;
         if (collectionNames.includes('login-dados')) {
-            usuarioCount = await UsuarioModel.countDocuments();
+            usuarioCount = await Usuario.countDocuments();
         }
         
         res.json({
@@ -160,7 +79,6 @@ app.get('/api/teste', async (req, res) => {
             banco: mongoose.connection.db.databaseName,
             colecoes: collectionNames,
             totalUsuarios: usuarioCount,
-            modelo_definido: !!UsuarioModel,
             conexao_mongodb: mongoose.connection.readyState === 1
         });
         
@@ -168,8 +86,7 @@ app.get('/api/teste', async (req, res) => {
         console.error('❌ Erro em /api/teste:', error.message);
         res.status(500).json({
             mensagem: 'Erro no servidor',
-            erro: error.message,
-            sugestao: 'O modelo pode estar mal definido'
+            erro: error.message
         });
     }
 });
@@ -186,8 +103,7 @@ app.post('/api/login', async (req, res) => {
             });
         }
         
-        const UsuarioModel = getUsuarioModel();
-        const usuario = await UsuarioModel.findOne({ 
+        const usuario = await Usuario.findOne({ 
             email: { $regex: new RegExp('^' + email + '$', 'i') } 
         });
         
@@ -240,10 +156,8 @@ app.post('/api/cadastrar', async (req, res) => {
             });
         }
         
-        const UsuarioModel = getUsuarioModel();
-        
         // Verificar se email existe
-        const existe = await UsuarioModel.findOne({ 
+        const existe = await Usuario.findOne({ 
             email: { $regex: new RegExp('^' + email + '$', 'i') } 
         });
         
@@ -256,7 +170,7 @@ app.post('/api/cadastrar', async (req, res) => {
         
         const senhaHash = await bcrypt.hash(senha, 10);
         
-        const novoUsuario = new UsuarioModel({
+        const novoUsuario = new Usuario({
             nome,
             email,
             senha: senhaHash,
@@ -289,10 +203,8 @@ app.post('/api/cadastrar', async (req, res) => {
 // ROTA CRIAR USUÁRIO TESTE
 app.post('/api/criar-teste', async (req, res) => {
     try {
-        const UsuarioModel = getUsuarioModel();
-        
         // Verificar se já existe
-        const existe = await UsuarioModel.findOne({ email: 'teste@teste.com' });
+        const existe = await Usuario.findOne({ email: 'teste@teste.com' });
         
         if (existe) {
             return res.json({
@@ -307,7 +219,7 @@ app.post('/api/criar-teste', async (req, res) => {
         
         const senhaHash = await bcrypt.hash('123456', 10);
         
-        const usuarioTeste = new UsuarioModel({
+        const usuarioTeste = new Usuario({
             nome: 'Usuário Teste',
             email: 'teste@teste.com',
             senha: senhaHash,
@@ -335,13 +247,21 @@ app.post('/api/criar-teste', async (req, res) => {
     }
 });
 
-// ROTA 404
-app.use((req, res) => {
-    res.status(404).json({
-        erro: 'Rota não encontrada',
-        rota: req.originalUrl,
-        metodo: req.method
+// ROTA HEALTH CHECK
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
     });
+});
+
+// ==================================================
+// 5. ROTA FALLBACK - PARA SPA (Single Page Application)
+// ==================================================
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ==================================================
@@ -354,6 +274,7 @@ app.listen(PORT, () => {
 ==================================================
 📡 URL Local: http://localhost:${PORT}
 🌐 URL Produção: https://teste-sist-yes-no.onrender.com
+📁 Frontend: Disponível em /
 🗄️  MongoDB Status: ${mongoose.connection.readyState === 1 ? '✅ Conectado' : '❌ Desconectado'}
 ==================================================
     `);

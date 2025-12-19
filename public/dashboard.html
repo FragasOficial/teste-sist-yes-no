@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <title>Dashboard - Sistema de Login</title>
+    <link rel="stylesheet" href="/styleDashboard.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-card">
+            <h1>🎉 Bem-vindo ao seu Dashboard!</h1>
+            
+            <div id="user-info">
+                <!-- Informações serão carregadas pelo JavaScript -->
+            </div>
+            
+            <div class="logout-section">
+                <button onclick="logout()">🚪 Sair da Conta</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Verificar se usuário está logado
+        const usuario = JSON.parse(localStorage.getItem('usuario'));
+        
+        if (!usuario) {
+            console.log('❌ Usuário não logado, redirecionando...');
+            window.location.href = '/';
+        } else {
+            console.log('✅ Usuário logado:', usuario.email);
+            
+            // Exibir informações do usuário
+            document.getElementById('user-info').innerHTML = `
+                <p><span class="info-label">Nome:</span> <span class="info-value">${usuario.nome || 'Não informado'}</span></p>
+                <p><span class="info-label">Email:</span> <span class="info-value">${usuario.email}</span></p>
+                <p><span class="info-label">Estado Civil:</span> <span class="info-value">${usuario.estadoCivil || 'Solteiro'}</span></p>
+                <p><span class="info-label">Mora na Lua:</span> <span class="info-value">${usuario.moraLua ? 'Sim 🌙' : 'Não 🌎'}</span></p>
+            `;
+        }
+        
+        function logout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                localStorage.clear();
+                alert('Você saiu da conta com sucesso!');
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

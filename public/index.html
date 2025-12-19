@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Login - Teste Lógico</title>
+    <link rel="stylesheet" href="./stylesheet.css">
+</head>
+<body>
+    <div>
+        <p class="configSize">
+            🚀 Sistema de Login - Teste Lógico
+        </p>
+    </div>
+    <div class="align">
+        <div class="configLabelFull">
+            <label for="yes" class="configLebel">
+                <p class="configHeader">
+                    📝 Cadastro de Usuários
+                </p>
+                <p>Nome:</p>
+                <input type="text" id="nomeCadastro" placeholder="Seu nome completo">
+                <p>Email:</p>
+                <input type="email" id="emailCadastro" placeholder="seu@email.com">
+                <p>Senha:</p>
+                <input type="password" id="senhaCadastro" placeholder="Mínimo 6 caracteres">
+                <p>Confirmar Senha:</p>
+                <input type="password" id="confirmarSenhaCadastro" placeholder="Digite novamente">
+                <p>Estado Civil:</p>
+                <select name="Escolha" id="configSelectCadastro">
+                    <option value="Solteiro">Solteiro</option>
+                    <option value="Casado">Casado</option>
+                    <option value="Divorciado">Divorciado</option>
+                    <option value="Amaziado">Amaziado</option>
+                </select>
+                <p>Mora na Lua? 🌙</p>
+                <select name="select" id="configYesNoCadastro">
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                </select>
+                <button id="btnCadastrar">Cadastrar</button>
+            </label>
+        </div>
+        
+        <div class="configLabelFull">
+            <label for="" class="configLebel">
+                <p class="configHeader">
+                    🔐 Fazer Login
+                </p>
+                <p>Email:</p>
+                <input type="email" id="emailLogin" placeholder="teste@teste.com" value="teste@teste.com">
+                <p>Senha:</p>
+                <input type="password" id="senhaLogin" placeholder="123456" value="123456">
+                <p>
+                    <a href="#">
+                        <p>🔓 Esqueci a senha</p>
+                    </a>
+                </p>
+                <button id="btnLogin" class="renderButton">Entrar</button>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #7f8c8d;">
+                    Usuário teste: teste@teste.com / 123456
+                </p>
+            </label>
+        </div>
+    </div>
+    
+    <header>
+        <p>© 2024 Sistema de Login - Todos os direitos reservados</p>
+    </header>
+    
+    <script src="/script.js"></script>
+</body>
+</html>
