@@ -1,4 +1,4 @@
-// server.js - VERSÃO FINAL CORRIGIDA
+// server.js - VERSÃO COMPLETA CORRIGIDA
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -43,49 +43,96 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // ==================================================
-// 3. FUNÇÃO PARA OBTER MODELO (À PROVA DE REDEFINIÇÃO)
+// 3. DEFINIR MODELO (CORREÇÃO FINAL - FUNÇÃO SEGURA)
 // ==================================================
+
+// CACHE global para armazenar o modelo
+let _usuarioModel = null;
+
 function getUsuarioModel() {
     try {
-        // 1. Tenta pegar o modelo JÁ EXISTENTE no Mongoose
-        if (mongoose.models.Usuario) {
-            console.log('📋 Usando modelo Usuario já existente');
-            return mongoose.models.Usuario;
+        // 1. Se já temos o modelo em cache, retorna ele
+        if (_usuarioModel) {
+            console.log('📋 [CACHE] Retornando modelo Usuario do cache');
+            return _usuarioModel;
         }
         
-        // 2. Se não existir, cria o modelo APENAS UMA VEZ
+        // 2. Verifica se o modelo já existe no Mongoose (para hot reloads)
+        if (mongoose.models && mongoose.models['Usuario']) {
+            _usuarioModel = mongoose.models['Usuario'];
+            console.log('📋 [MONGOOSE] Usando modelo Usuario já registrado');
+            return _usuarioModel;
+        }
+        
+        // 3. Se não existe em nenhum lugar, cria APENAS UMA VEZ
         const usuarioSchema = new mongoose.Schema({
-            nome: String,
-            email: { type: String, unique: true, sparse: true },
-            senha: String,
-            estadoCivil: String,
-            moraLua: Boolean,
+            nome: { type: String, required: true },
+            email: { 
+                type: String, 
+                required: true,
+                unique: true,
+                lowercase: true,
+                trim: true
+            },
+            senha: { type: String, required: true },
+            estadoCivil: { 
+                type: String, 
+                enum: ['Solteiro', 'Casado', 'Divorciado', 'Amaziado'],
+                default: 'Solteiro'
+            },
+            moraLua: { type: Boolean, default: false },
             dataCadastro: { type: Date, default: Date.now }
         }, { 
-            collection: 'login-dados',
-            autoCreate: false  
+            collection: 'login-dados',  // Nome da coleção no MongoDB
+            timestamps: false,
+            autoCreate: false  // IMPORTANTE para evitar recriação da coleção
         });
+
+        // Adiciona índices
+        usuarioSchema.index({ email: 1 }, { unique: true });
+        usuarioSchema.index({ dataCadastro: -1 });
+
+        // 4. Registra o modelo no Mongoose e no cache
+        _usuarioModel = mongoose.model('Usuario', usuarioSchema);
+        console.log('📋 [CRIAÇÃO] Modelo Usuario criado com sucesso!');
         
-        // Cria índice único para email
-        usuarioSchema.index({ email: 1 }, { unique: true, sparse: true });
-        
-        console.log('📋 Modelo Usuario criado com sucesso');
-        return mongoose.model('Usuario', usuarioSchema);
+        return _usuarioModel;
         
     } catch (error) {
-        console.error('❌ Erro ao obter modelo Usuario:', error.message);
-        throw error;
+        console.error('❌ Erro CRÍTICO ao obter modelo Usuario:', error);
+        console.error('Stack trace:', error.stack);
+        throw new Error(`Falha ao inicializar modelo: ${error.message}`);
     }
 }
 
 // ==================================================
-// 4. ROTAS API (CORRIGIDAS - USAM getUsuarioModel())
+// 4. MIDDLEWARE PARA VERIFICAR MODELO ANTES DAS ROTAS
+// ==================================================
+app.use(async (req, res, next) => {
+    try {
+        // Pré-carrega o modelo na primeira requisição
+        if (!_usuarioModel) {
+            getUsuarioModel();
+        }
+        next();
+    } catch (error) {
+        console.error('❌ Middleware: Erro ao inicializar modelo', error);
+        res.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro de inicialização do servidor',
+            erro: error.message
+        });
+    }
+});
+
+// ==================================================
+// 5. ROTAS API (TODAS USAM getUsuarioModel() CORRETAMENTE)
 // ==================================================
 
 // ROTA DE TESTE
 app.get('/api/teste', async (req, res) => {
     try {
-        // Obtém o modelo de forma segura
+        // Obtém o modelo de forma SEGURA
         const Usuario = getUsuarioModel();
         
         const collections = await mongoose.connection.db.listCollections().toArray();
@@ -97,18 +144,22 @@ app.get('/api/teste', async (req, res) => {
         }
         
         res.json({
-            mensagem: 'Backend funcionando! 🚀',
+            sucesso: true,
+            mensagem: '✅ Backend funcionando perfeitamente!',
             banco: mongoose.connection.db.databaseName,
             colecoes: collectionNames,
             totalUsuarios: usuarioCount,
-            conexao_mongodb: mongoose.connection.readyState === 1
+            conexao_mongodb: mongoose.connection.readyState === 1,
+            modelo_carregado: !!Usuario
         });
         
     } catch (error) {
-        console.error('❌ Erro em /api/teste:', error.message);
+        console.error('❌ Erro FATAL em /api/teste:', error);
         res.status(500).json({
-            mensagem: 'Erro no servidor',
-            erro: error.message
+            sucesso: false,
+            mensagem: 'Backend OK, mas erro no MongoDB',
+            erro: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
@@ -116,9 +167,7 @@ app.get('/api/teste', async (req, res) => {
 // ROTA DE LOGIN
 app.post('/api/login', async (req, res) => {
     try {
-        // Obtém o modelo de forma segura
         const Usuario = getUsuarioModel();
-        
         const { email, senha } = req.body;
         
         if (!email || !senha) {
@@ -172,9 +221,7 @@ app.post('/api/login', async (req, res) => {
 // ROTA DE CADASTRO
 app.post('/api/cadastrar', async (req, res) => {
     try {
-        // Obtém o modelo de forma segura
         const Usuario = getUsuarioModel();
-        
         const { nome, email, senha, estadoCivil, moraLua } = req.body;
         
         if (!nome || !email || !senha) {
@@ -231,7 +278,6 @@ app.post('/api/cadastrar', async (req, res) => {
 // ROTA CRIAR USUÁRIO TESTE
 app.post('/api/criar-teste', async (req, res) => {
     try {
-        // Obtém o modelo de forma segura
         const Usuario = getUsuarioModel();
         
         // Verificar se já existe
@@ -284,15 +330,19 @@ app.get('/health', (req, res) => {
         status: 'healthy',
         database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         uptime: process.uptime(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        modelo_carregado: !!_usuarioModel
     });
 });
 
-// ==================================================
-// 5. ROTA FALLBACK - PARA SPA
-// ==================================================
-app.get('*', (req, res) => {
+// ROTA RAIZ PARA FRONTEND
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ROTA PARA DASHBOARD
+app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 // ==================================================
@@ -303,17 +353,41 @@ app.listen(PORT, '0.0.0.0', () => {
 ==================================================
 🚀 SERVIDOR INICIADO COM SUCESSO!
 ==================================================
-📡 URL Local: http://localhost:${PORT}
-🌐 URL Produção: https://teste-sist-yes-no.onrender.com
+📡 Host: 0.0.0.0:${PORT}
+🌐 URL Pública: https://teste-sist-yes-no.onrender.com
 📁 Frontend: Disponível em /
-🗄️  MongoDB Status: ${mongoose.connection.readyState === 1 ? '✅ Conectado' : '❌ Desconectado'}
+🗄️  MongoDB: ${mongoose.connection.readyState === 1 ? '✅ Conectado' : '❌ Desconectado'}
+📋 Modelo: ${_usuarioModel ? '✅ Pronto' : '⏳ Aguardando primeira requisição'}
 ==================================================
     `);
+    
+    // Pré-carrega o modelo na inicialização
+    setTimeout(() => {
+        try {
+            getUsuarioModel();
+            console.log('✅ Modelo pré-carregado na inicialização');
+        } catch (error) {
+            console.error('❌ Falha ao pré-carregar modelo:', error.message);
+        }
+    }, 1000);
+});
+
+// ==================================================
+// 7. MANIPULADORES DE ERRO GLOBAL
+// ==================================================
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    console.error('Stack:', error.stack);
 });
 
 // Gerenciar desligamento
 process.on('SIGINT', async () => {
+    console.log('👋 Recebido SIGINT. Encerrando...');
     await mongoose.connection.close();
-    console.log('👋 Conexão MongoDB fechada');
+    console.log('✅ Conexão MongoDB fechada');
     process.exit(0);
 });
