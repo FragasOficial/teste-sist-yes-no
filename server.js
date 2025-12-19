@@ -1,4 +1,4 @@
-// server.js - VERSÃO COMPLETA CORRIGIDA
+// server.js - VERSÃO DEFINITIVA CORRIGIDA
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -43,98 +43,46 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // ==================================================
-// 3. DEFINIR MODELO (CORREÇÃO FINAL - FUNÇÃO SEGURA)
+// 3. MODELO ÚNICO E DEFINIDO UMA VEZ (FORA DE QUALQUER FUNÇÃO)
 // ==================================================
 
-// CACHE global para armazenar o modelo
-let _usuarioModel = null;
-
-function getUsuarioModel() {
-    try {
-        // 1. Se já temos o modelo em cache, retorna ele
-        if (_usuarioModel) {
-            console.log('📋 [CACHE] Retornando modelo Usuario do cache');
-            return _usuarioModel;
-        }
-        
-        // 2. Verifica se o modelo já existe no Mongoose (para hot reloads)
-        if (mongoose.models && mongoose.models['Usuario']) {
-            _usuarioModel = mongoose.models['Usuario'];
-            console.log('📋 [MONGOOSE] Usando modelo Usuario já registrado');
-            return _usuarioModel;
-        }
-        
-        // 3. Se não existe em nenhum lugar, cria APENAS UMA VEZ
+// Verifica se o modelo JÁ EXISTE ANTES de tentar criar
+let Usuario;
+try {
+    // Se o modelo 'Usuario' já está registrado no Mongoose, usa ele
+    if (mongoose.models.Usuario) {
+        Usuario = mongoose.models.Usuario;
+        console.log('✅ Modelo Usuario já existe. Reutilizando.');
+    } else {
+        // Se não existe, cria pela PRIMEIRA e ÚNICA vez
         const usuarioSchema = new mongoose.Schema({
-            nome: { type: String, required: true },
-            email: { 
-                type: String, 
-                required: true,
-                unique: true,
-                lowercase: true,
-                trim: true
-            },
-            senha: { type: String, required: true },
-            estadoCivil: { 
-                type: String, 
-                enum: ['Solteiro', 'Casado', 'Divorciado', 'Amaziado'],
-                default: 'Solteiro'
-            },
-            moraLua: { type: Boolean, default: false },
-            dataCadastro: { type: Date, default: Date.now }
-        }, { 
-            collection: 'login-dados',  // Nome da coleção no MongoDB
-            timestamps: false,
-            autoCreate: false  // IMPORTANTE para evitar recriação da coleção
+            nome: String,
+            email: String,
+            senha: String,
+            estadoCivil: String,
+            moraLua: Boolean,
+            dataCadastro: Date
+        }, {
+            collection: 'login-dados' // Isso APENAS diz em qual coleção salvar
         });
-
-        // Adiciona índices
-        usuarioSchema.index({ email: 1 }, { unique: true });
-        usuarioSchema.index({ dataCadastro: -1 });
-
-        // 4. Registra o modelo no Mongoose e no cache
-        _usuarioModel = mongoose.model('Usuario', usuarioSchema);
-        console.log('📋 [CRIAÇÃO] Modelo Usuario criado com sucesso!');
         
-        return _usuarioModel;
-        
-    } catch (error) {
-        console.error('❌ Erro CRÍTICO ao obter modelo Usuario:', error);
-        console.error('Stack trace:', error.stack);
-        throw new Error(`Falha ao inicializar modelo: ${error.message}`);
+        Usuario = mongoose.model('Usuario', usuarioSchema);
+        console.log('📋 Modelo Usuario criado com sucesso.');
     }
+} catch (error) {
+    console.error('❌ ERRO CRÍTICO ao definir modelo:', error);
+    // Se falhar aqui, o servidor não deve continuar
+    throw error;
 }
 
 // ==================================================
-// 4. MIDDLEWARE PARA VERIFICAR MODELO ANTES DAS ROTAS
-// ==================================================
-app.use(async (req, res, next) => {
-    try {
-        // Pré-carrega o modelo na primeira requisição
-        if (!_usuarioModel) {
-            getUsuarioModel();
-        }
-        next();
-    } catch (error) {
-        console.error('❌ Middleware: Erro ao inicializar modelo', error);
-        res.status(500).json({
-            sucesso: false,
-            mensagem: 'Erro de inicialização do servidor',
-            erro: error.message
-        });
-    }
-});
-
-// ==================================================
-// 5. ROTAS API (TODAS USAM getUsuarioModel() CORRETAMENTE)
+// 4. ROTAS API (USAM A VARIÁVEL GLOBAL 'Usuario')
 // ==================================================
 
 // ROTA DE TESTE
 app.get('/api/teste', async (req, res) => {
     try {
-        // Obtém o modelo de forma SEGURA
-        const Usuario = getUsuarioModel();
-        
+        // Usuario é uma variável global já definida
         const collections = await mongoose.connection.db.listCollections().toArray();
         const collectionNames = collections.map(c => c.name);
         
@@ -167,7 +115,6 @@ app.get('/api/teste', async (req, res) => {
 // ROTA DE LOGIN
 app.post('/api/login', async (req, res) => {
     try {
-        const Usuario = getUsuarioModel();
         const { email, senha } = req.body;
         
         if (!email || !senha) {
@@ -221,7 +168,6 @@ app.post('/api/login', async (req, res) => {
 // ROTA DE CADASTRO
 app.post('/api/cadastrar', async (req, res) => {
     try {
-        const Usuario = getUsuarioModel();
         const { nome, email, senha, estadoCivil, moraLua } = req.body;
         
         if (!nome || !email || !senha) {
@@ -278,8 +224,6 @@ app.post('/api/cadastrar', async (req, res) => {
 // ROTA CRIAR USUÁRIO TESTE
 app.post('/api/criar-teste', async (req, res) => {
     try {
-        const Usuario = getUsuarioModel();
-        
         // Verificar se já existe
         const existe = await Usuario.findOne({ email: 'teste@teste.com' });
         
@@ -331,7 +275,7 @@ app.get('/health', (req, res) => {
         database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
-        modelo_carregado: !!_usuarioModel
+        modelo_carregado: !!Usuario
     });
 });
 
@@ -346,7 +290,7 @@ app.get('/dashboard.html', (req, res) => {
 });
 
 // ==================================================
-// 6. INICIAR SERVIDOR (CORRIGIDO PARA RENDER)
+// 5. INICIAR SERVIDOR (CORRIGIDO PARA RENDER)
 // ==================================================
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`
@@ -357,23 +301,13 @@ app.listen(PORT, '0.0.0.0', () => {
 🌐 URL Pública: https://teste-sist-yes-no.onrender.com
 📁 Frontend: Disponível em /
 🗄️  MongoDB: ${mongoose.connection.readyState === 1 ? '✅ Conectado' : '❌ Desconectado'}
-📋 Modelo: ${_usuarioModel ? '✅ Pronto' : '⏳ Aguardando primeira requisição'}
+📋 Modelo: ${Usuario ? '✅ Pronto' : '❌ Falhou'}
 ==================================================
     `);
-    
-    // Pré-carrega o modelo na inicialização
-    setTimeout(() => {
-        try {
-            getUsuarioModel();
-            console.log('✅ Modelo pré-carregado na inicialização');
-        } catch (error) {
-            console.error('❌ Falha ao pré-carregar modelo:', error.message);
-        }
-    }, 1000);
 });
 
 // ==================================================
-// 7. MANIPULADORES DE ERRO GLOBAL
+// 6. MANIPULADORES DE ERRO GLOBAL
 // ==================================================
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
