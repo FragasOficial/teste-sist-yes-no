@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 *{
     margin: 0;
@@ -7,139 +7,162 @@
 }
 
 body {
-    font-family: 'Roboto', system-ui, sans-serif;
-    font-weight: 300;
+    font-family: "Poppins", system-ui, sans-serif;
     text-align: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    background: linear-gradient(135deg, #0f172a, #1d4ed8);
+    color: #0f172a;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    color: #333;
 }
 
-/* CONTAINER CENTRAL */
+/* ---------- CONTAINER ---------- */
 .align {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0,0,0,.2);
-    padding: 2.5rem;
-    min-width: 320px;
-    max-width: 850px;
     width: 100%;
+    max-width: 900px;
+
+    background: rgba(255,255,255,.2);
+    border-radius: 26px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, .25);
+
+    box-shadow: 0 40px 80px rgba(0,0,0,.35);
+
+    padding: 3rem 2rem;
     margin: auto;
+
     display: flex;
     flex-wrap: wrap;
-    gap: 2rem;
     justify-content: center;
-    align-items: stretch;
+    gap: 2rem;
+
+    animation: fadeIn .6s ease-out;
 }
 
-/* HEADER */
+/* ---------- HEADER ---------- */
 header {
     width: 100%;
-    margin-bottom: 1rem;
 }
 
 .configHeader {
-    font-size: 2rem;
+    font-size: 2.3rem;
     font-weight: 700;
-    margin-bottom: .5rem;
-    color: #2c3e50;
+    color: white;
+    margin-bottom: .3rem;
+    letter-spacing: .5px;
 }
 
 .configSize {
-    font-size: 1.2rem;
+    color: #c7d2fe;
     font-weight: 500;
-    color: #6a11cb;
 }
 
-/* CARDS */
+/* ---------- CARDS ---------- */
 .configLebel {
-    border: none;
-    border-radius: 1.2rem;
-    padding: 2rem 1.5rem;
-    background: #f8f9fa;
-    width: 18rem;
-    transition: .3s ease;
-    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    width: 19rem;
+
+    background: rgba(255,255,255,.45);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.4);
+
+    padding: 2rem 1.2rem;
+
+    box-shadow: 0 18px 40px rgba(0,0,0,.25);
+    transition: .35s ease;
+
+    cursor: pointer;
 }
 
 .configLebel:hover{
-    transform: translateY(-5px);
-    background: #ffffff;
-    box-shadow: 0 12px 28px rgba(0,0,0,.15);
+    transform: translateY(-5px) scale(1.01);
+    background: rgba(255,255,255,.7);
 }
 
-/* SELECTS */
+/* ---------- SELECTS ---------- */
 select{
-    width: 80%;
-    padding: .6rem;
-    border-radius: .6rem;
-    border: 2px solid #ddd;
+    width: 85%;
+    padding: .7rem;
+    border-radius: 10px;
+
+    border: none;
     outline: none;
-    margin: .7rem auto 1rem;
-    font-weight: 500;
+
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 10px 20px rgba(0,0,0,.15);
+
+    font-weight: 600;
+
+    margin: .9rem auto 1.3rem;
     transition: .3s;
 }
 
 select:focus{
-    border-color: #6a11cb;
+    transform: scale(1.03);
 }
 
-/* INPUTS */
+/* ---------- INPUTS ---------- */
 .configLabelFull {
-    margin: .6rem 0;
+    margin-top: .7rem;
 }
 
 .configLabelFull input {
-    margin: .4rem 0;
-    padding: .6rem;
     width: 90%;
-    border-radius: .6rem;
-    border: 2px solid #ddd;
+    padding: .7rem;
+
+    background: rgba(255,255,255,.9);
+    border-radius: 12px;
+    border: none;
     outline: none;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,.15);
     transition: .3s;
 }
 
 .configLabelFull input:focus{
-    border-color: #2575fc;
+    transform: scale(1.03);
 }
 
 .configLabelFull p {
     margin-top: 1rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-/* BOTÃO */
+/* ---------- BOTÃO ---------- */
 button {
-    height: 2.8rem;
-    width: 12rem;
-    font-size: 1rem;
+    height: 3.2rem;
+    width: 13rem;
+
+    border-radius: 40px;
     border: none;
-    border-radius: 999px;
+    outline: none;
+
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
-    font-weight: 600;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    font-size: 1.05rem;
+    font-weight: 700;
+
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 22px rgba(106, 17, 203, 0.4);
+    transition: .35s ease;
+
+    box-shadow: 0 20px 35px rgba(99,102,241,.45);
 }
 
 button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(37, 117, 252, 0.4);
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 30px 50px rgba(99,102,241,.55);
 }
 
 button:active{
     transform: translateY(-1px);
 }
 
-/* RESPONSIVO */
-@media (max-width: 768px){
+/* ---------- RESPONSIVO ---------- */
+@media(max-width: 768px){
     .align{
-        padding: 1.5rem;
+        padding: 1.8rem;
         gap: 1.2rem;
     }
 
@@ -149,5 +172,17 @@ button:active{
 
     button{
         width: 100%;
+    }
+}
+
+/* ---------- ANIMAÇÃO ---------- */
+@keyframes fadeIn {
+    from{
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to{
+        opacity: 1;
+        transform: translateY(0);
     }
 }
