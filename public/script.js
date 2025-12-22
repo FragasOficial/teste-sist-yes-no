@@ -260,3 +260,13 @@ function limparDados() {
         alert('🗑️ Dados locais limpos!');
     }
 }
+
+const toggleBtn = document.getElementById("themeToggle");
+
+toggleBtn.addEventListener("click", ()=>{
+  document.body.classList.toggle("dark");
+  toggleBtn.innerHTML =
+    document.body.classList.contains("dark")
+    ? `<span class="material-icons">light_mode</span>`
+    : `<span class="material-icons">dark_mode</span>`;
+});
