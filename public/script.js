@@ -270,3 +270,12 @@ toggleBtn.addEventListener("click", ()=>{
     ? `<span class="material-icons">light_mode</span>`
     : `<span class="material-icons">dark_mode</span>`;
 });
+
+function showToast(msg){
+    const toast = document.getElementById("toast");
+    toast.innerText = msg;
+    toast.classList.add("show");
+    setTimeout(()=> toast.classList.remove("show"), 3000);
+  }
+  showToast("Configuração aplicada com sucesso!");
+  
